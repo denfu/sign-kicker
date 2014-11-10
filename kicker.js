@@ -13,6 +13,11 @@ MatchState = {
 
 
 MatchManager = {
+    
+    endMatch: function(id) {
+       //Matches.remove({_id:id});
+        Matches.update({_id:id}, {$set: {ender: Meteor.userId(), state : MatchState.ENDED, endDate: new Date().getTime()}});
+    },
     updateMatch: function(match) {
         Matches.update({_id:match._id}, match);
     },
@@ -24,7 +29,8 @@ MatchManager = {
 
     startMatch: function(id) {
        //Matches.remove({_id:id});
-        Matches.update({_id:id}, {$set: {aborter: Meteor.userId(), state : MatchState.STARTED, abortDate: new Date().getTime()}});
+        sendMessage(MSG_IDS.GAME_START, id)
+        Matches.update({_id:id}, {$set: {starter: Meteor.userId(), state : MatchState.STARTED, startDate: new Date().getTime()}});
     },
 
     undoAbortMatch: function(id) {
@@ -38,10 +44,13 @@ MatchManager = {
             creator         : Meteor.userId(),
             creationDate    : new Date().getTime(),
             startDate       : null,
+            starter         : null,
             endDate         : null,
             abortDate       : null,
             aborter         : null,
+            ender           : null,
             state           : MatchState.INITIALIZED,
+            placesReservedBy: [null, null, null, null],    
             places          : [null, null, null, null],
             num             : biggestNum? biggestNum.num + 1 : 1
         }
@@ -55,9 +64,21 @@ MatchManager = {
     },
 
     getMatches: function() {
-        var now = new Date().getTime() - (1000 * 60 * 1);
+        var timeThreshhold = new Date().getTime() - (1000 * 60 * 1);
         return Matches.find(
-            {$or : [{state : {$ne: MatchState.ABORTED}}, {abortDate: {$gt: now}} ]},
+            {
+                $and: [{
+                    $or : [
+                        {state : {$ne: MatchState.ABORTED}}, 
+                        {abortDate: {$gt: timeThreshhold}}
+                        ]
+                }, {
+                    $or : [
+                        {state : {$ne: MatchState.ENDED}}, 
+                        {endDate: {$gt: timeThreshhold}}
+                        ]
+                }]                
+            },
             {sort: { creationDate: -1 }}
         ).fetch(); //TODO: no ended 
     },
@@ -81,18 +102,26 @@ if (Meteor.isClient) {
     Meteor.subscribe('allChats');
 
     Accounts.ui.config({      
-      passwordSignupFields: 'USERNAME_AND_EMAIL'
+      passwordSignupFields: 'USERNAME_ONLY'
     });
 
 
 
     Template.statelabel.helpers({
-        getStateLabelName : function() {
-            console.log(this);
-            return state;
+        getStateLabelName : function() {            
+            return this.toString();
         },
         getStateLabelCls : function() {
-            return "success";
+            switch (this.toString()) {
+                case MatchState.STARTED:
+                    return "success";
+                case MatchState.ABORTED:
+                    return "danger";
+                case MatchState.INITIALIZED:
+                    return "default";
+                case MatchState.ENDED:
+                    return "primary";
+            }
         }
     });
 
@@ -100,6 +129,11 @@ if (Meteor.isClient) {
         isStarted :     function() {
             return this.state === MatchState.STARTED;
         },
+
+        isEnded :     function() {
+            return this.state === MatchState.ENDED;
+        },
+
         isMatchAboutToStart : function() {
             if (MatchState.ABORTED === this.state || this.state === MatchState.STARTED) {
                 return false;
@@ -129,7 +163,7 @@ if (Meteor.isClient) {
         },
 
         getStateClass: function() {
-            return "y-state-"+this.state;
+            return "";//"y-state-"+this.state;
         }
     });
 
@@ -158,7 +192,7 @@ if (Meteor.isClient) {
     Template.placeButton.helpers({
        
        disableoverlay: function() {
-            if (this.match.state === MatchState.ABORTED || this.match.state === MatchState.STARTED) {
+            if (this.match.state === MatchState.ABORTED || this.match.state === MatchState.STARTED || this.match.state === MatchState.ENDED) {
                 return "y-disable-overlay";
             }
        },
@@ -193,21 +227,22 @@ if (Meteor.isClient) {
     }
   });
 
-  Template.masterTemplate.rendered = function()
-  {
+  Template.masterTemplate.rendered = function() {
     if (!Meteor.userId()) {
         Accounts._loginButtonsSession.set('dropdownVisible', true);
     }
-    
-
-    //$('*[data-toggle="tooltip"]').tooltip();
   };
 
     
 
     Template.masterTemplate.helpers({
-        
-        getUserPath: function() {
+        syncChromeWithAccount : function() {
+            if (!Session.get(Const.CHROM_SYNCED_ALREADY)) {
+                Session.set(Const.CHROM_SYNCED_ALREADY, true);
+                sendMessage(MSG_IDS.PROFILE_CHANGE, Meteor.user().profile);
+            }
+        }
+        /*getUserPath: function() {
             return location.pathname;
         },
 
@@ -220,7 +255,7 @@ if (Meteor.isClient) {
             }
 
             return userId;
-    	}
+    	}*/
   });
 
   
@@ -252,10 +287,13 @@ if (Meteor.isClient) {
                 
             })
 
+            var userprofile = $.extend(Meteor.user().profile, form.profile);
+            form.profile = userprofile;
             Meteor.users.update({_id: Meteor.userId()}, {$set:form});
             
             $('#modal-profile').modal('hide');
 
+            sendMessage(MSG_IDS.PROFILE_CHANGE, form);
             
 
             //do validation on form={firstname:'first name', lastname: 'last name', email: 'email@email.com'}
@@ -272,7 +310,16 @@ if (Meteor.isClient) {
         //var matchId = e.currentTarget.dataset.matchid;
        
         MatchManager.startMatch(this._id);
+    }, 
+
+    'click .y-ended-btn': function (e,a) {
+        //var matchId = e.currentTarget.dataset.matchid;
+       
+        MatchManager.endMatch(this._id);
     },
+
+
+
 
     'click .y-abort-btn': function (e,a) {
         //var matchId = e.currentTarget.dataset.matchid;
@@ -307,7 +354,73 @@ if (Meteor.isClient) {
     } 
   });
 
-  
+    Template.myLoginButtons.helpers({
+        validationFailed : function() {
+            return Session.get("createUserValidationError");
+        },
+
+        usernotexists : function() {
+            Session.get("userNotExists");
+        }
+    });
+
+
+    Template.myLoginButtons.events({
+        'click #y-user-create-btn' :function() {
+            var username = $('#y-user-create-or-login-btn');
+            var nick = input.val();
+            nick = nick.trim();
+
+            console.log(nick);
+        }
+    });
+
+
+    Template.myLoginButtons.rendered = function() {
+        $.fn.pressEnter = function(fn) {  
+
+            return this.each(function() {  
+                $(this).bind('enterPress', fn);
+                $(this).keyup(function(e){
+                    if(e.keyCode == 13)
+                    {
+                      $(this).trigger("enterPress");
+                    }
+                })
+            });  
+        };
+
+        var username = $('#y-user-create-or-login-btn');
+
+        username.on('focusin', function(){
+            this.placeholder = "";
+        });
+
+
+        username.on('focusout', function(){            
+            this.placeholder = I18N.username;
+        });
+
+        username.pressEnter(function(e, a){
+            var input = $(e.currentTarget);
+            var nick = input.val();
+            if (!nick || !nick.trim() || !nick.trim().length < 5) {
+                Session.set("createUserValidationError", true);
+            }
+
+            nick = nick.trim();
+            
+            var user = Meteor.users.findOne({username:nick});
+            
+            if (!user) {
+                Session.set("userNotExists, true");
+            }
+
+            
+            //TODO: login            
+        });
+    };
+
 }
 
 
@@ -334,6 +447,10 @@ if (Meteor.isServer) {
             notifyOnFull : true,
             username : user.username
         }
+
+        Session.set("profileIsSet", true);
+
+        
 
         /*if (options.profile)
         user.profile = options.profile;*/

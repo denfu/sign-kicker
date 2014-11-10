@@ -53,11 +53,14 @@ if (Meteor.isClient) {
         });
     };
 
+
+
+
     Template.chat.events({
         'click button.y-button-chatbox' : function() {            
             var input = $('.y-chatbox');
             if (!input.val()) return ;
-            
+
             ChatManager.addChat(input.val());
             input.val("");
         }

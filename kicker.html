@@ -9,8 +9,8 @@
 </body>
 
 <template name="masterTemplate">
-
 	{{#if currentUser}}	
+		{{syncChromeWithAccount}}
 		<div id="y-top">
 			{{> actionbar }}
 
@@ -30,9 +30,33 @@
 		</div>
 	{{else}}
 		<div class="login">
-			{{> loginButtons}}
+			{{> myLoginButtons}}
 		</div>
 	{{/if}}
+</template>
+
+<template name="myLoginButtons">
+	<div id="t-myLoginButtons">
+		{{#if validationFailed}}
+			<div class="alert alert-dismissable alert-danger">
+			    <button type="button" class="close" data-dismiss="alert">×</button>
+			    <strong>Oh snap!</strong> <a href="" class="alert-link">Username ilegal</a> ... try again.
+			</div>
+		{{/if}}
+		
+		<div class="input-group y-login">
+			<span class="input-group-addon">
+				<span class="mdi-communication-person icon-material-person"></span>
+			</span>
+
+			<div class="form-control-wrapper">
+	      		<input id="y-user-create-or-login-btn" type="text" class="form-control" placeholder="{{I18N 'username'}}">
+	      	</div>			
+	    </div>
+	    {{#if userNotExists}} 
+	    	<a href="" id="y-user-create-btn" class="btn btn-danger">User doesn't exist. Create?</a>
+	    {{/if}}
+	</div>
 </template>
 
 <template name="actionbar">
@@ -77,19 +101,23 @@
 						  				<div class="y-col-btn col-xs-5">{{>placeButton match=this places=places index=0}}</div>
 						  				<div class="y-col-btn col-xs-5">{{>placeButton match=this places=places index=1}}</div>
 						  			</div>
-						  			<div class="col-xs-2">				
-						  				{{#if isMatchAbortedOrStarted}}
-						  					<div class="y-abort-undo-btn icon-preview icon-preview-block">
-												<i class="icon-material-undo mdi-content-undo"></i>
-												<!--<span>{{I18N 'undoButtonTooltip'}}</span>-->
-											</div>
-						  				{{else}}
-							  				<div class="y-abort-btn icon-preview icon-preview-block">
-												<i class="icon-material-cancel mdi-content-cancel"></i>
-												<!--<span>{{I18N 'abortButtonTooltip'}}</span>-->
-											</div>	
+						  			<div class="col-xs-2">
+						  				{{#if isEnded}}
+						  				
+						  				{{else}}		
+							  				{{#if isMatchAbortedOrStarted}}
+							  					<div class="y-abort-undo-btn icon-preview icon-preview-block">
+													<i class="icon-material-undo mdi-content-undo"></i>
+													<!--<span>{{I18N 'undoButtonTooltip'}}</span>-->
+												</div>
+							  				{{else}}
+								  				<div class="y-abort-btn icon-preview icon-preview-block">
+													<i class="icon-material-cancel mdi-content-cancel"></i>
+													<!--<span>{{I18N 'abortButtonTooltip'}}</span>-->
+												</div>	
+											{{/if}}
+											{{tooltipRefresh}}
 										{{/if}}
-										{{tooltipRefresh}}	
 						  			</div>
 						  			<!--<div class="col-xs-1"></div>-->		  				
 								</div>
@@ -97,11 +125,21 @@
 						  			<div class="y-col-btn col-xs-5">{{>placeButton match=this places=places index=2}}</div>
 						  			<div class="y-col-btn col-xs-5">{{>placeButton match=this places=places index=3}}</div>
 						  			<div class="col-xs-2">
-						  				{{#if isMatchAboutToStart}}
-						  					<div hint="test me" class="y-about-to-start-btn icon-preview icon-preview-block">
-												<i class="icon-material-arrow-forward mdi-content-arrow-forward"></i>
-												<!--<span>{{I18N 'undoButtonTooltip'}}</span>-->
-											</div>						  					
+						  				{{#if isEnded}}
+						  				
+						  				{{else}}
+							  				{{#if isMatchAboutToStart}}
+							  					<div class="y-about-to-start-btn icon-preview icon-preview-block">
+													<i class="icon-material-arrow-forward mdi-content-arrow-forward"></i>
+													<!--<span>{{I18N 'undoButtonTooltip'}}</span>-->
+												</div>						  					
+							  				{{/if}}
+							  				{{#if isStarted}}
+							  					<div class="y-ended-btn icon-preview icon-preview-block">
+													<i class="icon-material-check mdi-content-check"></i>
+													<!--<span>{{I18N 'undoButtonTooltip'}}</span>-->
+												</div>						  					
+							  				{{/if}}
 						  				{{/if}}
 						  			</div>		  				
 								</div>					
