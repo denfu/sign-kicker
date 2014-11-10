@@ -1,0 +1,145 @@
+<head>
+  <title>Signavio Kicker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+  {{> masterTemplate}}
+  <!--<script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>-->
+</body>
+
+<template name="masterTemplate">
+
+	{{#if currentUser}}	
+		<div id="y-top">
+			{{> actionbar }}
+
+			{{> profile_dialog}}
+			
+			<div class="container">	
+				{{> matchList}}
+			</div>
+		</div>
+
+		<div id="y-bottom">
+			<div class="footer">
+		      	<div class="container">
+		      		{{> chat}}
+		      	</div>
+		    </div>
+		</div>
+	{{else}}
+		<div class="login">
+			{{> loginButtons}}
+		</div>
+	{{/if}}
+</template>
+
+<template name="actionbar">
+	<div id="t-actionbar">
+		<ul class="nav nav-tabs" role="tablist" style="padding-right: 15px;">			
+			<li role=""><a href="#" class="y-create-match icon-material-add"></a></li>
+			<li role="profile" class="y-profile-btn actionbar-right"><a href="#">{{I18N 'profileTitle'}}</a></li>
+		</ul>
+	</div>
+</template>
+
+
+
+<template name="matchList">
+	<div id="t-matchList">
+		<div class="y-matchList y-list-outer">
+			<div class="y-list-inner">
+				
+				<div class="list-group">
+					{{#each getMatches}}
+						<div id="num-{{num}}" class="list-group-item y-list-group-state-{{state}}" data-matchid="{{_id}}">	
+												
+								<div class="row">
+									<div class="y-col-btn col-xs-5">
+											<div class="y-match-number">#{{num}} | {{formatDate creationDate}}</div>
+										</div>
+										
+										<div class="y-col-btn col-xs-5">
+											{{#with state}}
+												{{> statelabel}}												
+											{{/with}}	
+										</div>
+											
+										<div class="y-col-btn col-xs-2"></div>
+								</div>
+								<div class="row">
+
+										
+									<div class="{{getStateClass}}">
+										
+										
+						  				<div class="y-col-btn col-xs-5">{{>placeButton match=this places=places index=0}}</div>
+						  				<div class="y-col-btn col-xs-5">{{>placeButton match=this places=places index=1}}</div>
+						  			</div>
+						  			<div class="col-xs-2">				
+						  				{{#if isMatchAbortedOrStarted}}
+						  					<div class="y-abort-undo-btn icon-preview icon-preview-block">
+												<i class="icon-material-undo mdi-content-undo"></i>
+												<!--<span>{{I18N 'undoButtonTooltip'}}</span>-->
+											</div>
+						  				{{else}}
+							  				<div class="y-abort-btn icon-preview icon-preview-block">
+												<i class="icon-material-cancel mdi-content-cancel"></i>
+												<!--<span>{{I18N 'abortButtonTooltip'}}</span>-->
+											</div>	
+										{{/if}}
+										{{tooltipRefresh}}	
+						  			</div>
+						  			<!--<div class="col-xs-1"></div>-->		  				
+								</div>
+								<div class="row {{getStateClass}}">					
+						  			<div class="y-col-btn col-xs-5">{{>placeButton match=this places=places index=2}}</div>
+						  			<div class="y-col-btn col-xs-5">{{>placeButton match=this places=places index=3}}</div>
+						  			<div class="col-xs-2">
+						  				{{#if isMatchAboutToStart}}
+						  					<div hint="test me" class="y-about-to-start-btn icon-preview icon-preview-block">
+												<i class="icon-material-arrow-forward mdi-content-arrow-forward"></i>
+												<!--<span>{{I18N 'undoButtonTooltip'}}</span>-->
+											</div>						  					
+						  				{{/if}}
+						  			</div>		  				
+								</div>					
+					        	<div class="list-group-separator"></div>			       		
+				        </div>
+					{{/each}}
+				</div>
+			</div>
+		</div>	
+	</div>	
+</template>
+
+<template name="placeButton">
+	<div class="{{disableoverlay}}"></div>
+
+	{{#if isUnset places index}}
+		{{>switch name="Open" match=match index=index state="unset" cls="danger btn-unset"}}
+	{{else}}
+		{{#if isThisUser places index}}
+			{{>switch match=match index=index state="you" cls="default btn-you"}}
+		{{else}}
+			{{>switch match=match index=index state="notyou" cls="reserved btn-notyou"}}
+		{{/if}}
+	{{/if}}
+</template>
+
+<template name="statelabel">
+	<span class="label y-state-label label-{{getStateLabelCls}}">{{getStateLabelName}}</span>
+</template>
+
+<template name="switch">
+	<div class="switch_cls">
+		<a href="#" data-index="{{index}}" data-state="{{state}}" class="btn-raised btn y-btn-place btn-{{cls}} withripple">
+			{{getName match index}}
+			<div class="ripple-wrapper"></div>
+		</a>
+	</div>
+</template>
+
+
+

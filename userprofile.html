@@ -1,0 +1,63 @@
+<template name="profile_dialog">
+    <div id="t-profile_dialog">
+        <div class="modal fade" id="modal-profile">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h4 class="modal-title">{{I18N 'titleProfile'}}</h4>
+                    </div>
+                    <div class="modal-body">
+                        {{#with currentUser.profile}}
+                            {{> profile_body}}
+                        {{/with}}
+                    </div>
+
+                    
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">{{I18N 'decline'}}</button>
+                        <button type="button" class="save-profile-btn btn btn-primary">{{I18N 'save'}}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template name="profile_body">
+    
+    <div id="t-profile_body">
+       
+        <form id="profile-form" class="form-horizontal">
+            <fieldset>
+                
+                <div class="form-group">
+                    <label for="username" class="col-lg-2 control-label">{{I18N 'username'}}</label>
+                    
+                    <div class="col-lg-10">
+                        <input type="text" class="form-control" id="username" placeholder="{{username}}">
+                        
+                        {{> checkbox profileField='notifyOnStart' val=this.notifyOnStart}}
+                        {{> checkbox profileField='notifyOnMsg' val=this.notifyOnMsg}}
+                        {{> checkbox profileField='notifyAdd' val=this.notifyAdd}}
+                        {{> checkbox profileField='notifyOnFull' val=this.notifyOnFull}}                      
+
+                    </div>
+                </div>
+                
+            </fieldset>
+        </form>
+
+    </div>
+
+</template>
+
+<template name="checkbox"> 
+    <div class="t-checkbox">
+        <label>
+            <input id="{{profileField}}" type="checkbox" checked="{{val}}"><span class="ripple"></span><span class="check"></span>
+            {{I18NProfile profileField}}
+        </label>
+    </div>
+</template>

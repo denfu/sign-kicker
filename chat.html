@@ -1,0 +1,33 @@
+<template name="chat">
+	<div class="t-chat well">
+		<div class="y-list-outer">
+			<div class="chatwindow y-list-inner">			
+			
+				<div class="y-chatlines">
+					{{#each getChats}}
+						<div class="row">								  					  		
+				  			<div class="col-xs-2 y-username"><span class="">{{username}}</span></div>
+				  			<div class="col-xs-8">> <span class="y-msg">{{msg}}</span></div>
+				  			<div class="col-xs-2"><span class="y-time">{{formatDate creationDate}}</span></div>
+				  		</div>
+					{{/each}}
+				</div>
+
+				
+			</div>
+		</div>
+
+		<div class="input-group y-chat-input">
+			<span class="input-group-addon">
+				<span class="y-icon-msg mdi-communication-messenger icon-material-messenger"></span>
+			</span>
+
+			<div class="form-control-wrapper">
+	      		<input type="text" class="form-control y-chatbox" placeholder="{{I18N 'typeHereText'}}">
+	      	</div>
+			<span class="input-group-btn">
+				<button data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Tooltip on bottom" class="btn btn-primary withripple y-button-chatbox" type="button">{{I18N 'sendChat'}}</button>
+			</span>
+	    </div>
+	</div>
+</template>

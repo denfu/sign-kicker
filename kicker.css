@@ -1,0 +1,249 @@
+body, html {
+	background-color: white;
+	height: 100%;
+}
+
+#y-top {
+	height: 70%;
+}
+
+#y-top > .container {
+	padding-bottom: 40px;
+}
+
+#y-bottom {
+	height: 30%;
+}
+
+.container {
+	height: 100%;
+}
+
+
+
+/* Common */
+.y-list-inner { 
+	width: 105%; 
+	overflow-y: auto;
+	overflow-x: hidden;
+	height: 100%;
+}
+
+
+.y-list-outer { 
+	overflow: hidden;
+	height: 100%;
+}
+
+/* Login */
+a#forgot-password-link, a.login-close-text {
+	visibility: hidden;
+	height: 0;
+	display: block;
+}
+
+div.login {
+	width: 50%;
+	margin: 20px auto;
+}
+
+/* actionbar */
+#t-actionbar .actionbar-right {
+	float: right !important;
+	margin-right: -15px;
+}
+
+#t-actionbar ul.nav.nav-tabs {
+	background: #555;
+}
+
+#t-actionbar ul.nav.nav-tabs li:first-child {
+	background: #ad0f5b;
+	border-bottom: 1px solid #ddd;
+}
+
+/* Matches */
+
+#t-matchList .y-col-btn.col-xs-5 {
+	padding: 3px 2px;
+}
+
+.y-state-label {
+	float: right;
+	margin-right: 5px;
+	width: 100px;
+}
+
+div#t-matchList {
+	height: 100%;
+}
+
+div.switch_cls a {
+	width: 100%;
+}
+
+.y-state-aborted, .y-state-started {
+	opacity: 0.3;
+}
+
+/*.y-aborted-overlay {
+	height: 80%;
+	width: 80%;
+	position: absolute;
+	z-index: 100;
+}*/
+
+.y-disable-overlay {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	z-index: 10000;
+	/* opacity: 1; */
+	
+}
+
+a.btn-raised.btn.y-btn-place.btn-default.btn-you.withripple {
+	background: #ad0f5b;
+}
+
+a.btn-raised.btn.y-btn-place.btn-danger.btn-unset.withripple {
+	background: rgb(249, 249, 250);
+}
+
+
+a.btn-raised.btn.y-btn-place.btn-reserved.withripple {
+	background: rgb(39, 171, 101);
+}
+
+a.btn-raised.btn.y-btn-place.withripple:hover {
+	opacity: 0.8;
+}
+
+a.btn-raised.btn.y-btn-place.withripple {
+	border-radius: 0px;
+	margin: 0px;
+	text-transform: none;
+}
+
+.switch_cls {
+	padding-right: 4px;
+}
+
+
+/* Chat */
+.t-chat.well {
+	padding: 5px 12px 4px 12px;
+	height: 95%;
+	margin-bottom: 0px;
+	background: rgb(249, 249, 250);
+}
+
+.t-chat.well .y-list-outer {
+	padding-bottom: 40px;
+}
+
+.t-chat .form-control-wrapper {
+	bottom: -1px;
+}
+
+.chatwindow .y-chatlines .y-time {
+	color: grey;
+	font-size: 11px;
+	padding-right: 25px;
+}
+
+.chatwindow .y-username span {
+	color: #ad0f5b;
+	font-style: italic;
+	font-size: 11px;
+}
+
+.chatwindow span.y-time  {
+
+}
+
+div.y-username {
+	padding-right: 0px;
+}
+
+.chatwindow .y-chatlines {
+	padding-top: 0px;
+	width: 97%;
+}
+
+.chatwindow .row {
+	line-height: 17px;
+	font-size: 13px;
+}
+
+.y-input-group-addon {
+	background-color: transparent;
+}
+
+.y-chat-input .input-group-addon {
+	font-size: 17px;
+	background-color: transparent;	
+	padding-right: 0px;
+	padding-top: 10px;
+}
+
+.input-group.y-chat-input {
+	padding: 0;
+	margin-top: -35px;
+}
+
+.y-chat-input button.btn {
+	margin: 0px;
+	text-transform: none;
+	padding: 5px 15px 5px 15px;
+}
+
+.chatwindow .col-xs-2 {
+	text-align: right;
+}
+
+button.btn.btn-primary.withripple.y-button-chatbox.withripple {
+	background: #ad0f5b;
+	border-radius: 0px;
+}
+
+
+/* Footer */
+.footer {
+  /*position: absolute;
+  bottom: 0;*/
+  width: 100%;
+  height: 100%;
+}
+
+/* Ausprobieren */
+.icon-preview-block {
+	display: inline-block;
+	padding: 5px 5px 0 5px;
+	margin: 0px;
+	border-radius: 52px;
+	cursor: pointer;
+	font-size: 24px;
+	color: #555;
+}
+
+.icon-preview-block:hover {
+	color: #ad0f5b;
+}
+
+.icon-preview span {
+	display: none;
+	position: absolute;
+	background: #555;
+	color: #FFF;
+	padding: 5px 8px;
+	font-size: 11px;
+	font-family: Roboto;
+	border-radius: 0px;
+	z-index: 1000;
+	margin-right: 50%;
+	margin-left: -50%;
+}
+
+.icon-preview:hover i { color: #4285f4; }
+.icon-preview:hover span { display: block; cursor: text; }
