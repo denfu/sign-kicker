@@ -3,70 +3,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-<body>
+<!--<body>
   {{> masterTemplate}}
-  <!--<script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>-->
-</body>
+ 
+</body>-->
+
+<template name="games">
+games
+</template>
 
 <template name="masterTemplate">
-	{{#if currentUser}}	
-		{{syncChromeWithAccount}}
-		<div id="y-top">
-			{{> actionbar }}
-
-			{{> profile_dialog}}
-			
-			<div class="container">	
-				{{> matchList}}
-			</div>
-		</div>
-
-		<div id="y-bottom">
-			<div class="footer">
-		      	<div class="container">
-		      		{{> chat}}
-		      	</div>
-		    </div>
-		</div>
+	{{#if isNotChrome}}
+		Only chrome supported
 	{{else}}
-		<div class="login">
-			{{> myLoginButtons}}
-		</div>
+		{{#if currentUser}}	
+			{{syncChromeWithAccount}}
+			<div id="y-top">
+				{{> actionbar }}
+
+				{{> profile_dialog}}
+				
+				<div class="container">	
+					{{> yield}}
+				</div>
+			</div>
+
+			<div id="y-bottom">
+				<div class="footer">
+			      	<div class="container">
+			      		{{> chat}}
+			      	</div>
+			    </div>
+			</div>
+		{{else}}
+			<div class="login">
+				{{> myLoginButtons}}
+			</div>
+		{{/if}}
 	{{/if}}
 </template>
 
-<template name="myLoginButtons">
-	<div id="t-myLoginButtons">
-		{{#if validationFailed}}
-			<div class="alert alert-dismissable alert-danger">
-			    <button type="button" class="close" data-dismiss="alert">×</button>
-			    <strong>Oh snap!</strong> <a href="" class="alert-link">Username ilegal</a> ... try again.
-			</div>
-		{{/if}}
-		
-		<div class="input-group y-login">
-			<span class="input-group-addon">
-				<span class="mdi-communication-person icon-material-person"></span>
-			</span>
-
-			<div class="form-control-wrapper">
-	      		<input id="y-user-create-or-login" type="text" class="form-control" placeholder="{{I18N 'username'}}">
-	      	</div>
-
-	      	<div class="form-control-wrapper">
-	      		<input id="y-user-create-or-login-password" type="text" class="form-control" placeholder="{{I18N 'password'}}">
-	      	</div>			
-	    </div>
-	    {{#if userNotExists}} 
-	    	<a href="" id="y-user-create-btn" class="btn btn-danger">User doesn't exist. Create?</a>
-	    {{/if}}
-	</div>
-</template>
 
 <template name="actionbar">
 	<div id="t-actionbar">
 		<ul class="nav nav-tabs" role="tablist" style="padding-right: 15px;">			
 			<li role=""><a href="#" class="y-create-match icon-material-add"></a></li>
+			{{#if isNotHome}}
+				<li role=""><a href="/" class="y-switchpath icon-material-add"></a></li>
+			{{else}}
+				<li role=""><a href="/games" class="y-switchpath icon-material-gamepad"></a></li>
+			{{/if}}
 			<li role="profile" class="y-profile-btn actionbar-right"><a href="#">{{I18N 'profileTitle'}}</a></li>
 		</ul>
 	</div>
@@ -111,7 +97,7 @@
 						  				{{else}}		
 							  				{{#if isMatchAbortedOrStarted}}
 							  					<div class="y-abort-undo-btn icon-preview icon-preview-block">
-													<i class="icon-material-undo mdi-content-undo"></i>
+													<i class="icon-material-keyboard-return mdi-content-keyboard-return"></i>
 													<!--<span>{{I18N 'undoButtonTooltip'}}</span>-->
 												</div>
 							  				{{else}}

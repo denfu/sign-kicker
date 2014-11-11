@@ -64,6 +64,11 @@ div.login {
 
 /* Matches */
 
+i.icon-material-keyboard-return.mdi-content-keyboard-return {
+	font-size: 17px;
+	margin-left: -4px;
+}
+
 #t-matchList .y-col-btn.col-xs-5 {
 	padding: 3px 2px;
 }
@@ -100,7 +105,7 @@ div.switch_cls a {
 	width: 100%;
 	height: 100%;
 	position: absolute;
-	z-index: 10000;
+	z-index: 1000;
 	opacity: 0.7;
 	background: white;
 }
@@ -169,9 +174,6 @@ div.y-username {
 	padding-right: 0px;
 }
 
-#modal-profile {
-	z-index: 2000;
-}
 
 .chatwindow .y-chatlines {
 	padding-top: 0px;
@@ -212,6 +214,18 @@ div.y-username {
 button.btn.btn-primary.withripple.y-button-chatbox.withripple {
 	background: #ad0f5b;
 	border-radius: 0px;
+}
+
+/* Profile */
+
+.y-logout-btn-wrapper {
+	float: left;
+	padding: 8px 30px;
+	margin: 10px 1px;
+}
+
+#modal-profile {
+	z-index: 2000;
 }
 
 

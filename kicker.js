@@ -27,10 +27,10 @@ MatchManager = {
         Matches.update({_id:id}, {$set: {aborter: Meteor.userId(), state : MatchState.ABORTED, abortDate: new Date().getTime()}});
     },
 
-    startMatch: function(id) {
+    startMatch: function(match) {
        //Matches.remove({_id:id});
-        sendMessage(MSG_IDS.GAME_START, id)
-        Matches.update({_id:id}, {$set: {starter: Meteor.userId(), state : MatchState.STARTED, startDate: new Date().getTime()}});
+        sendMessage(MSG_IDS.GAME_START, match)
+        Matches.update({_id:match._id}, {$set: {starter: Meteor.userId(), state : MatchState.STARTED, startDate: new Date().getTime()}});
     },
 
     undoAbortMatch: function(id) {
@@ -88,15 +88,26 @@ MatchManager = {
     }
 };
 
-var sendMessage = function(msgId, msgObject, cb) {
-    
-    chrome.runtime.sendMessage(Const.APP_ID, {msgId: msgId, msgObject: msgObject}, function(response) {
-        //TODO: cb
-    });
-}
+
 
 
 if (Meteor.isClient) {
+    Router.configure({layoutTemplate:"masterTemplate"});
+
+    Router.map(function() {
+        this.route('matchList', {path: '/'});
+        
+        this.route('games');
+    });
+    
+   
+
+    /*Router.route('/' + Meteor.userId(), function () {
+        this.render('masterTemplate');
+    });*/
+
+
+
     Meteor.subscribe('allUsers');
     Meteor.subscribe('allMatches');
     Meteor.subscribe('allChats');
@@ -109,7 +120,7 @@ if (Meteor.isClient) {
 
     Template.statelabel.helpers({
         getStateLabelName : function() {            
-            return this.toString();
+            return I18N[this.toString()] || this.toString();
         },
         getStateLabelCls : function() {
             switch (this.toString()) {
@@ -211,7 +222,49 @@ if (Meteor.isClient) {
         }
     });
 
+
+    Template.actionbar.helpers({
+        isNotHome : function() {
+            if (!Session.get("switchPath")) {
+                return location.pathname !== "/";
+            }
+            return Session.get("switchPath") !== "/"
+        }
+        /*,
+
+        switchPathIcons : function() {
+            if (Session.get("switchPath") === "/games") {
+                return "gamepad";
+            }
+
+            return "key";        
+        },
+
+        switchPath : function() {
+            if (location.pathname === "/games") {
+                Session.set("switchPath", "/");
+                
+            } else {
+                Session.set("switchPath", "/games");                
+            }
+
+            return Session.get("switchPath");
+        }*/
+    });
+
   Template.actionbar.events({
+    'click .y-switchpath' :function() {
+        if (Session.get("switchPath") !== "/") {
+            Session.set("switchPath", "/");                
+        } else {
+            Session.set("switchPath", "/games");                
+        }
+    },
+    'click .y-profile-btn' : function() {
+           
+        $('#modal-profile').modal();
+    },
+
     'click .y-create-match' :  function() {
         //MatchManager.createMatch(); 
         var newMatch = MatchManager.createMatch();
@@ -227,45 +280,32 @@ if (Meteor.isClient) {
     }
   });
 
-  Template.masterTemplate.rendered = function() {
-    if (!Meteor.userId()) {
-        Accounts._loginButtonsSession.set('dropdownVisible', true);
-    }
-  };
+    Template.masterTemplate.rendered = function() {
+        if (!Meteor.userId()) {
+            Accounts._loginButtonsSession.set('dropdownVisible', true);
+        }
+    };
 
     
 
     Template.masterTemplate.helpers({
+        isNotChrome: function() {
+            if (Const.ENABLE_OTHER_BROWSERS) {
+                return false;
+            } 
+            return !isChrome();            
+        },
         syncChromeWithAccount : function() {
             if (!Session.get(Const.CHROM_SYNCED_ALREADY)) {
                 Session.set(Const.CHROM_SYNCED_ALREADY, true);
-                sendMessage(MSG_IDS.PROFILE_CHANGE, Meteor.user().profile);
+                // send chrome message to have set the current users profile and id                
+                syncProfileWithChrome();
             }
-        }
-        /*getUserPath: function() {
-            return location.pathname;
-        },
-
-    	getUserId: function() {
-            var userId = Meteor.userId(); 
-            if (userId && !Session.get("userId")) {
-                Session.set("userId", userId);
-                //sendMessage("userId", {userId: userId});
-                //todo: callback
-            }
-
-            return userId;
-    	}*/
-  });
-
-  
-    Template.actionbar.events({
-        'click .y-profile-btn' : function() {
-           
-            $('#modal-profile').modal();
         }
     });
 
+  
+    
     Template.profile_dialog.events({
         'click .save-profile-btn' : function() {
             
@@ -289,11 +329,15 @@ if (Meteor.isClient) {
 
             var userprofile = $.extend(Meteor.user().profile, form.profile);
             form.profile = userprofile;
-            Meteor.users.update({_id: Meteor.userId()}, {$set:form});
+            Meteor.users.update({_id: Meteor.userId()}, {$set:form}, function(){
+                syncProfileWithChrome();
+                 //sendMessage(MSG_IDS.PROFILE_CHANGE, form);
+            });
             
             $('#modal-profile').modal('hide');
 
-            sendMessage(MSG_IDS.PROFILE_CHANGE, form);
+
+           
             
 
             //do validation on form={firstname:'first name', lastname: 'last name', email: 'email@email.com'}
@@ -309,7 +353,7 @@ if (Meteor.isClient) {
     'click .y-about-to-start-btn': function (e,a) {
         //var matchId = e.currentTarget.dataset.matchid;
        
-        MatchManager.startMatch(this._id);
+        MatchManager.startMatch(this);
     }, 
 
     'click .y-ended-btn': function (e,a) {
@@ -354,96 +398,7 @@ if (Meteor.isClient) {
     } 
   });
 
-    Template.myLoginButtons.helpers({
-        validationFailed : function() {
-            if(Session.get("createUserValidationError")){
-                Session.set("createUserValidationError",false);
-                return true;
-            }
-            return false;
-        },
-
-        usernotexists : function() {
-            Session.get("userNotExists");
-        }
-    });
-
-
-    Template.myLoginButtons.events({
-        'click #y-user-create-btn' :function() {
-            var username = $('#y-user-create-or-login');
-            var nick = input.val();
-            nick = nick.trim();
-
-            console.log(nick);
-        }
-    });
-
-
-    Template.myLoginButtons.rendered = function() {
-        $.fn.pressEnter = function(fn) {  
-
-            return this.each(function() {  
-                $(this).bind('enterPress', fn);
-                $(this).keyup(function(e){
-                    if(e.keyCode == 13)
-                    {
-                      $(this).trigger("enterPress");
-                    }
-                })
-            });  
-        };
-
-        var username = $('#y-user-create-or-login');
-        var pw = $('#y-user-create-or-login-password');
-
-        username.on('focusin', function(){
-            this.placeholder = "";
-        });
-
-        pw.on('focusin', function(){
-            this.placeholder = "";
-        });
-
-
-        username.on('focusout', function(){            
-            this.placeholder = I18N.username;
-        });
-
-        pw.on('focusout', function(){            
-            this.placeholder = I18N.password;
-        });
-
-        var tryLogin = function() {
-            var username = $('#y-user-create-or-login').val().trim();
-            var pw = $('#y-user-create-or-login-password').val().trim();
-
-            //TODO: login  
-        }
-
-        pw.pressEnter(function(e, a){
-            tryLogin();          
-        });
-
-        username.pressEnter(function(e, a){
-            var input = $(e.currentTarget);
-            var nick = input.val();
-            if (!nick || !nick.trim() || !nick.trim().length > 5) {
-                Session.set("createUserValidationError", true);
-            }
-
-            nick = nick.trim();
-            
-            var user = Meteor.users.findOne({username:nick});
-            
-            if (!user) {
-                Session.set("userNotExists, true");
-            }
-
-            
-            //TODO: login            
-        });
-    };
+    
 
 }
 
@@ -471,13 +426,6 @@ if (Meteor.isServer) {
             notifyOnFull : true,
             username : user.username
         }
-
-        Session.set("profileIsSet", true);
-
-        
-
-        /*if (options.profile)
-        user.profile = options.profile;*/
         return user;
     });
 

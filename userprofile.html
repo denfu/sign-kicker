@@ -5,17 +5,19 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                        <h4 class="modal-title">{{I18N 'titleProfile'}}</h4>
+                        <h4 class="modal-title">{{I18N 'profileTitle'}}</h4>
                     </div>
                     <div class="modal-body">
                         {{#with currentUser.profile}}
                             {{> profile_body}}
                         {{/with}}
                     </div>
-
                     
 
                     <div class="modal-footer">
+                        <div class="y-logout-btn-wrapper">
+                            <a id="y-logout-btn" href="#">Logout</a>
+                        </div>
                         <button type="button" class="btn btn-default" data-dismiss="modal">{{I18N 'decline'}}</button>
                         <button type="button" class="save-profile-btn btn btn-primary">{{I18N 'save'}}</button>
                     </div>
@@ -33,10 +35,10 @@
             <fieldset>
                 
                 <div class="form-group">
-                    <label for="username" class="col-lg-2 control-label">{{I18N 'username'}}</label>
+                    <!--<label for="username" class="col-lg-2 control-label">{{I18N 'username'}}</label>-->
                     
                     <div class="col-lg-10">
-                        <input type="text" class="form-control" id="username" placeholder="{{username}}">
+                        <!--<input type="text" class="form-control" id="username" placeholder="{{username}}">-->
                         
                         {{> checkbox profileField='notifyOnStart' val=this.notifyOnStart}}
                         {{> checkbox profileField='notifyOnMsg' val=this.notifyOnMsg}}
