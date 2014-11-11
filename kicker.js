@@ -356,7 +356,11 @@ if (Meteor.isClient) {
 
     Template.myLoginButtons.helpers({
         validationFailed : function() {
-            return Session.get("createUserValidationError");
+            if(Session.get("createUserValidationError")){
+                Session.set("createUserValidationError",false);
+                return true;
+            }
+            return false;
         },
 
         usernotexists : function() {
@@ -367,7 +371,7 @@ if (Meteor.isClient) {
 
     Template.myLoginButtons.events({
         'click #y-user-create-btn' :function() {
-            var username = $('#y-user-create-or-login-btn');
+            var username = $('#y-user-create-or-login');
             var nick = input.val();
             nick = nick.trim();
 
@@ -390,9 +394,14 @@ if (Meteor.isClient) {
             });  
         };
 
-        var username = $('#y-user-create-or-login-btn');
+        var username = $('#y-user-create-or-login');
+        var pw = $('#y-user-create-or-login-password');
 
         username.on('focusin', function(){
+            this.placeholder = "";
+        });
+
+        pw.on('focusin', function(){
             this.placeholder = "";
         });
 
@@ -401,10 +410,25 @@ if (Meteor.isClient) {
             this.placeholder = I18N.username;
         });
 
+        pw.on('focusout', function(){            
+            this.placeholder = I18N.password;
+        });
+
+        var tryLogin = function() {
+            var username = $('#y-user-create-or-login').val().trim();
+            var pw = $('#y-user-create-or-login-password').val().trim();
+
+            //TODO: login  
+        }
+
+        pw.pressEnter(function(e, a){
+            tryLogin();          
+        });
+
         username.pressEnter(function(e, a){
             var input = $(e.currentTarget);
             var nick = input.val();
-            if (!nick || !nick.trim() || !nick.trim().length < 5) {
+            if (!nick || !nick.trim() || !nick.trim().length > 5) {
                 Session.set("createUserValidationError", true);
             }
 
