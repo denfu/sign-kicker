@@ -11,7 +11,7 @@ if (Meteor.isClient) {
 
     Template.profile_body.helpers({
         getInvitations : function() {
-            return Invitations.find({ownerId:Meteor.userId()});
+            return Invitations.find({ownerId:Meteor.userId(), inUse: false});
         }
 
         

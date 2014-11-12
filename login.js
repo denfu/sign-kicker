@@ -1,6 +1,6 @@
 if (Meteor.isClient) {
 
-     var tryLogin = function() {
+     var tryLogin = function(url) {
         Session.set("createUserValidationError", false);
 
         var username = $('#y-user-create').val().trim();
@@ -11,7 +11,21 @@ if (Meteor.isClient) {
             return;
         }
 
-        //TODO: login  
+        //var invitation = Invitations.findOne({url:url, inUse:false});
+        //if (invitation) {
+            //Matches.update({_id:id}, {$set: {state : MatchState.INITIALIZED}});
+            //Invitations.update({_id:invitation._id}, {$set: {inUse:true}});
+            Accounts.createUser({username: username, password: pw, url:url}, function(err) {
+                if (err) {
+                    Session.set("creationError", err.message);
+                } else {
+                    Router.go("/");
+                }
+            });
+        /*} else {
+            Session.set("urlInvalid", true);
+        }*/
+         
     }
 
     Template.registration.helpers({
@@ -30,20 +44,19 @@ if (Meteor.isClient) {
             return Session.get("createUserValidationError");
         },
 
-        usernotexists : function() {
-            if(Session.get("userNotExists")){
-                //Session.set("userNotExists", false);
-                return true;
-            }
-            return false;
-            
+        urlInvalid : function() {
+            return Session.get('urlInvalid');
+        },
+
+        creationError : function() {
+            return Session.get('creationError');
         }
     });
 
 
     Template.registrationForm.events({
         'click #y-user-create-btn' :function() {
-            tryLogin();
+            tryLogin(this.url);
             
         }
     });

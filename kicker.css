@@ -22,6 +22,19 @@ body, html {
 
 
 /* Common */
+.bs-callout {
+	padding: 5px;
+	margin: 0px 0;
+	border: 1px solid #eee;
+	border-left-width: 5px;
+	border-bottom: 0px;
+	border-radius: 3px;
+}
+
+.bs-callout-green {
+	border-left-color: #5cb85c;
+}
+
 .y-list-inner { 
 	width: 105%; 
 	overflow-y: auto;
@@ -280,6 +293,9 @@ div#t-registration {
 	width: 50%;
 }
 
+#signup-link {
+	visibility: hidden;
+}
 
 span#y-registration-icon {
 	position: absolute;

@@ -136,6 +136,14 @@ if (Meteor.isClient) {
     });
 
     Template.matchList.helpers({
+
+        calloutIfStarted : function() {
+            if (this.state === MatchState.STARTED) {
+                return "bs-callout bs-callout-green"
+            }
+            return "";
+        },
+
         isStarted :     function() {
             return this.state === MatchState.STARTED;
         },
@@ -418,6 +426,14 @@ if (Meteor.isServer) {
     });
 
     Accounts.onCreateUser(function(options, user) {
+
+        var invitation = Invitations.findOne({url:options.url, inUse:false});
+        if (!invitation) {
+            throw new Error("invalid.invitation.error");
+        }
+
+        Invitations.remove({_id:invitation._id});
+        //Invitations.update({_id:invitation._id}, {$set: {inUse:true}});
         user.profile = {
             notifyOnStart : true,
             notifyOnMsg : false,

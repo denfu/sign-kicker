@@ -3,6 +3,13 @@
 		<div class="container">	
 			<div id="t-registration">
 				<h3>Registration</h3>
+			 	{{#if creationError}}
+                	<p class="text-danger">{{creationError}}</p>
+                {{/if}}
+                
+                {{#if urlInvalid}}
+                	<p class="text-danger">urlInvalid</p>
+                {{/if}}
 				<div class="form-group has-default">
 					<span class="input-group-addon" id="y-registration-icon">
 						<span class="mdi-communication-person-add icon-material-person-add"></span>

@@ -2,9 +2,9 @@
 * Notifications
 ** new mesges
 ** additional info in gamestart
-* invitation link
+* game start makieren
 ** simple login
 * chat begrenzen
-
-
+* icon favo
+*SEND MESSAGE
 */
