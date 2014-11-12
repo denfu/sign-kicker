@@ -119,7 +119,18 @@ if (Meteor.isClient) {
 
     Template.profile_body.events({
         'click y-generate-invite-link' :function() {
-            
+            var invite = {
+                ownerId: Meteor.userId(),
+                url : generateInviteUrl,
+                creationDate : new Date().getTime()
+            }
+
+            Invitations.insert(invite, function(err, matchInserted){
+                if (err) {
+                    //TODO: log fail
+                }
+            });
+        
         }
     });
 

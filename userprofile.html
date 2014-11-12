@@ -48,7 +48,10 @@
 
                     <div class="col-lg-10">
                         <button type="button" class="y-generate-invite-link btn btn-primary">{{I18N 'keygenerate'}}</button>
-                        {{getInvitationlinks}}
+                       
+                        {{#each getInvitationlinks}}
+                            {{ownerId}}
+                        {{/each}}
                     </div>
                 </div>
                 
