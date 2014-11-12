@@ -47,6 +47,12 @@ div.login {
 	margin: 20px auto;
 }
 
+/* registration */
+div#t-registration {
+	width: 50%;
+}
+
+
 /* actionbar */
 #t-actionbar .actionbar-right {
 	float: right !important;
@@ -269,10 +275,26 @@ button.btn.btn-primary.withripple.y-button-chatbox.withripple {
 .icon-preview:hover i { color: #4285f4; }
 .icon-preview:hover span { display: block; cursor: text; }
 
+/* registration */
+div#t-registration {
+	width: 50%;
+}
+
+
+span#y-registration-icon {
+	position: absolute;
+	margin-left: -44px;
+	margin-top: 4px;
+	background-color: transparent;
+	border: white;
+}
 
 .y-login {
 	height : 71px;
+}
 
+.y-registration .input-group-addon{
+	background-color: white;
 }
 
 .y-login .input-group-addon {

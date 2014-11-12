@@ -1,0 +1,73 @@
+<template name="registrationForm">
+	<div class="login">
+		<div class="container">	
+			<div id="t-registration">
+				<h3>Registration</h3>
+				<div class="form-group has-default">
+					<span class="input-group-addon" id="y-registration-icon">
+						<span class="mdi-communication-person-add icon-material-person-add"></span>
+					</span>                    
+                    <div class="form-control-wrapper">
+                    	<input type="text" class="form-control empty" id="y-user-create" placeholder="{{I18N 'username'}}">
+                    	<span class="material-input"></span>
+                    </div>
+                </div>
+
+                <div class="form-group has-default">                    
+                    <div class="form-control-wrapper">
+                    	<input type="password" class="form-control empty" id="y-user-create-password" placeholder="{{I18N 'password'}}">
+                    	<span class="material-input"></span>
+                    </div>
+                </div>
+                <a href="" style="width:100%" id="y-user-create-btn" class="btn btn-primary">Create</a>
+                {{#if validationFailed}}
+
+					<div class="alert alert-dismissable alert-danger">
+					    <!--<button type="button" class="close" data-dismiss="alert">×</button>-->
+					    <strong>Oh snap!</strong> Username or password illegal (minimum 5 characters) ... try again.
+					</div>
+				{{/if}}
+            </div>				
+		</div>
+	</div>
+</template>
+
+<template name="registration">
+	{{forwardIfLoggedIn}}
+ 	
+ 	{{#if invitation}}
+ 		{{> registrationForm}}	 	
+	 {{else}}
+	 	Invalid URL
+	 {{/if}}
+</template>
+
+<template name="myLoginButtons">
+	{{> loginButtons}}
+	<!--<div id="t-myLoginButtons">
+		
+		
+		<div class="input-group y-login">
+			<span class="input-group-addon">
+				<span class="mdi-communication-person icon-material-person"></span>
+			</span>
+
+			<div class="form-control-wrapper">
+	      		<input id="y-user-create-or-login" type="text" class="form-control" placeholder="{{I18N 'username'}}">
+	      	</div>
+
+	      	<div class="form-control-wrapper">
+	      		<input id="y-user-create-or-login-password" type="text" class="form-control" placeholder="{{I18N 'password'}}">
+	      	</div>			
+	    </div>
+	    {{#if userNotExists}} 
+	    	<a href="" id="y-user-create-btn" class="btn btn-danger">User doesn't exist. Create?</a>
+	    {{/if}}
+	    {{#if validationFailed}}
+			<div class="alert alert-dismissable alert-danger">
+			    <button type="button" class="close" data-dismiss="alert">×</button>
+			    <strong>Oh snap!</strong> <a href="" class="alert-link">Username ilegal</a> ... try again.
+			</div>
+		{{/if}}
+	</div>-->
+</template>

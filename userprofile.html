@@ -49,9 +49,21 @@
                     <div class="col-lg-10">
                         <button type="button" class="y-generate-invite-link btn btn-primary">{{I18N 'keygenerate'}}</button>
                        
-                        {{#each getInvitationlinks}}
-                            {{ownerId}}
-                        {{/each}}
+                        <table class="table table-striped table-hover ">
+                            <thead>
+                                <tr>
+                                    <th>Created</th>
+                                    <th>Url</th>                                    
+                                    <th></th>                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                            
+                                {{#each getInvitations}}
+                                    {{> invitationTableRow}}                               
+                                {{/each}}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 
@@ -60,6 +72,14 @@
 
     </div>
 
+</template>
+
+<template name="invitationTableRow">
+    <tr>
+        <td>{{formatDate creationDate}}</td>
+        <td>{{getInviteUrl}}</td>
+        <td><button type="button" class="y-delete-invitation">×</button></td>
+    </tr>
 </template>
 
 <template name="checkbox"> 

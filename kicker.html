@@ -3,56 +3,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-<!--<body>
-  {{> masterTemplate}}
- 
-</body>-->
-
-<template name="games">
-games
-</template>
-
-<template name="masterTemplate">
+<template name="main">
 	{{#if isNotChrome}}
 		Only chrome supported
 	{{else}}
-		{{#if currentUser}}	
-			{{syncChromeWithAccount}}
-			<div id="y-top">
-				{{> actionbar }}
-
-				{{> profile_dialog}}
-				
-				<div class="container">	
-					{{> yield}}
-				</div>
-			</div>
-
-			<div id="y-bottom">
-				<div class="footer">
-			      	<div class="container">
-			      		{{> chat}}
-			      	</div>
-			    </div>
-			</div>
-		{{else}}
-			<div class="login">
-				{{> loginButtons}}
-			</div>
-		{{/if}}
+		{{> yield}}
 	{{/if}}
 </template>
 
+
+<template name="masterTemplate">
+	{{#if currentUser}}
+		{{syncChromeWithAccount}}
+		<div id="y-top">
+			{{> actionbar }}
+
+			{{> profile_dialog}}
+			
+			<div class="container">	
+				{{> matchList}}
+			</div>
+		</div>
+
+		<div id="y-bottom">
+			<div class="footer">
+		      	<div class="container">
+		      		{{> chat}}
+		      	</div>
+		    </div>
+		</div>
+	{{else}}
+		<div class="login">
+			<div class="container">	
+				{{> myLoginButtons}}
+			</div>
+			
+		</div>
+	{{/if}}
+</template>
 
 <template name="actionbar">
 	<div id="t-actionbar">
 		<ul class="nav nav-tabs" role="tablist" style="padding-right: 15px;">			
 			<li role=""><a href="#" class="y-create-match icon-material-add"></a></li>
-			{{#if isNotHome}}
-				<li role=""><a href="/" class="y-switchpath icon-material-add"></a></li>
+			<!--{{#if isNotHome}}
+				<li role=""><a href="/" class="y-switchpath icon-material-storage"></a></li>
 			{{else}}
 				<li role=""><a href="/games" class="y-switchpath icon-material-gamepad"></a></li>
-			{{/if}}
+			{{/if}}-->
 			<li role="profile" class="y-profile-btn actionbar-right"><a href="#">{{I18N 'profileTitle'}}</a></li>
 		</ul>
 	</div>

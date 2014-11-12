@@ -1,8 +1,5 @@
 Config = new Mongo.Collection("Config");
 Matches = new Mongo.Collection("Matches");
-Invitations = new Mongo.Collection("Invitations");
-
-
 
 MatchState = {
     INITIALIZED : "initialized",
@@ -93,19 +90,19 @@ MatchManager = {
 
 
 if (Meteor.isClient) {
-    Router.configure({layoutTemplate:"masterTemplate"});
+    Router.configure({layoutTemplate:"main"});
 
-    Router.map(function() {
-        this.route('matchList', {path: '/'});
-        
-        this.route('games');
-    });
-    
-   
-
-    /*Router.route('/' + Meteor.userId(), function () {
+    Router.route('/', function () {
         this.render('masterTemplate');
-    });*/
+    });
+
+    Router.route('/invitation/:_id', function () {
+        this.render('registration', {
+            data: function () {
+              return {url: this.params._id};//Posts.findOne({_id: this.params._id});
+            }
+        });
+    });
 
 
 
@@ -114,31 +111,10 @@ if (Meteor.isClient) {
     Meteor.subscribe('allChats');
 
     Accounts.ui.config({      
-      passwordSignupFields: 'USERNAME_ONLY'
+        passwordSignupFields: 'USERNAME_ONLY'
     });
 
-    Template.profile_body.events({
-        'click y-generate-invite-link' :function() {
-            var invite = {
-                ownerId: Meteor.userId(),
-                url : generateInviteUrl,
-                creationDate : new Date().getTime()
-            }
-
-            Invitations.insert(invite, function(err, matchInserted){
-                if (err) {
-                    //TODO: log fail
-                }
-            });
-        
-        }
-    });
-
-    Template.profile_body.helpers({
-        getInvitationlinks : function() {
-            Invitations.find({ownerId:Meteor.userId()});
-        }
-    });
+    
 
 
     Template.statelabel.helpers({
