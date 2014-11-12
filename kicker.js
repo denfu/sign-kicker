@@ -1,5 +1,6 @@
 Config = new Mongo.Collection("Config");
 Matches = new Mongo.Collection("Matches");
+Invitations = new Mongo.Collection("Invitations");
 
 
 
@@ -116,6 +117,17 @@ if (Meteor.isClient) {
       passwordSignupFields: 'USERNAME_ONLY'
     });
 
+    Template.profile_body.events({
+        'click y-generate-invite-link' :function() {
+            
+        }
+    });
+
+    Template.profile_body.helpers({
+        getInvitationlinks : function() {
+            Invitations.find({ownerId:Meteor.userId()});
+        }
+    });
 
 
     Template.statelabel.helpers({

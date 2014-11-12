@@ -36,7 +36,6 @@
                 
                 <div class="form-group">
                     <!--<label for="username" class="col-lg-2 control-label">{{I18N 'username'}}</label>-->
-                    
                     <div class="col-lg-10">
                         <!--<input type="text" class="form-control" id="username" placeholder="{{username}}">-->
                         
@@ -45,6 +44,11 @@
                         {{> checkbox profileField='notifyAdd' val=this.notifyAdd}}
                         {{> checkbox profileField='notifyOnFull' val=this.notifyOnFull}}                      
 
+                    </div>
+
+                    <div class="col-lg-10">
+                        <button type="button" class="y-generate-invite-link btn btn-primary">{{I18N 'keygenerate'}}</button>
+                        {{getInvitationlinks}}
                     </div>
                 </div>
                 
