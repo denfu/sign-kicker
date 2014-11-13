@@ -6,5 +6,6 @@
 ** simple login
 * chat begrenzen
 * icon favo
-*SEND MESSAGE
+* SEND MESSAGE - plugin sync!
+** ausnahme wenn plug nicht installiert!
 */

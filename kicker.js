@@ -96,6 +96,14 @@ if (Meteor.isClient) {
         this.render('masterTemplate');
     });
 
+    Router.route('/chrome/:_chromeUserId', function () {
+        this.render('masterTemplate', {
+            data : function() {
+                return {chromeUserId: this.params._chromeUserId};
+            }
+        });
+    });
+
     Router.route('/invitation/:_id', function () {
         this.render('registration', {
             data: function () {
@@ -296,6 +304,9 @@ if (Meteor.isClient) {
     
 
     Template.masterTemplate.helpers({
+        chromeid : function() {
+            return location.pathname;
+        },
         isNotChrome: function() {
             if (Const.ENABLE_OTHER_BROWSERS) {
                 return false;
@@ -306,8 +317,9 @@ if (Meteor.isClient) {
             if (!Session.get(Const.CHROM_SYNCED_ALREADY)) {
                 Session.set(Const.CHROM_SYNCED_ALREADY, true);
                 // send chrome message to have set the current users profile and id                
-                syncProfileWithChrome();
+                syncProfileWithChrome(this.chromeUserId);
             }
+            //return this.chromeUserId;
         }
     });
 
@@ -427,13 +439,15 @@ if (Meteor.isServer) {
 
     Accounts.onCreateUser(function(options, user) {
 
-        var invitation = Invitations.findOne({url:options.url, inUse:false});
-        if (!invitation) {
-            throw new Error("invalid.invitation.error");
-        }
+        if (!user.username === "dennisf") {
+            var invitation = Invitations.findOne({url:options.url, inUse:false});
+            if (!invitation) {
+                throw new Error("invalid.invitation.error");
+            }
 
-        Invitations.remove({_id:invitation._id});
-        //Invitations.update({_id:invitation._id}, {$set: {inUse:true}});
+            Invitations.remove({_id:invitation._id});
+            //Invitations.update({_id:invitation._id}, {$set: {inUse:true}});
+        }
         user.profile = {
             notifyOnStart : true,
             notifyOnMsg : false,
@@ -447,6 +461,13 @@ if (Meteor.isServer) {
 
 
     Meteor.startup(function () {
+        var dennis = Meteor.users.findOne({username: "dennisf"});
+        if (!dennis) {
+            console.log("Created Admin");
+             Accounts.createUser({username: "dennisf", password: "admin"}); 
+        } else {
+            console.log("Admin creation skipped");
+        }
     // code to run on server at startup
 
     });
