@@ -27,7 +27,10 @@ MatchManager = {
 
     startMatch: function(match) {
        //Matches.remove({_id:id});
-        sendMessage(MSG_IDS.GAME_START, match)
+        //sendMessage(MSG_IDS.GAME_START, match)
+        var registrationIds = $.map(Meteor.users.find({"profile.notifyOnStart":true}).fetch(), function(u){ return u.profile.registrationId;});
+        //TODO: only those how play
+        sendGCMMessage(registrationIds, {msgId: MSG_IDS.GAME_START, title : "Game started", message: ""});
         Matches.update({_id:match._id}, {$set: {starter: Meteor.userId(), state : MatchState.STARTED, startDate: new Date().getTime()}});
     },
 
@@ -96,13 +99,21 @@ if (Meteor.isClient) {
         this.render('masterTemplate');
     });
 
-    Router.route('/chrome/:_chromeUserId', function () {
+    Router.route('/registerGCM', function () {
+        this.render('masterTemplate', {
+            data : function() {
+                return {registerGCM: true};
+            }
+        });
+    });
+
+    /*Router.route('/chrome/:_chromeUserId', function () {
         this.render('masterTemplate', {
             data : function() {
                 return {chromeUserId: this.params._chromeUserId};
             }
         });
-    });
+    });*/
 
     Router.route('/invitation/:_id', function () {
         this.render('registration', {
@@ -304,23 +315,31 @@ if (Meteor.isClient) {
     
 
     Template.masterTemplate.helpers({
-        chromeid : function() {
-            return location.pathname;
+        registerGCM : function() {
+            if (this.registerGCM) {
+                //if ready
+                sendMessage(MSG_IDS.REGISTER_GCM, Meteor.user(), function(result) {
+                    //console.log(result);
+                    //Router.go("/");
+                });
+            }
+            //return location.pathname;
         },
         isNotChrome: function() {
             if (Const.ENABLE_OTHER_BROWSERS) {
                 return false;
             } 
             return !isChrome();            
-        },
-        syncChromeWithAccount : function() {
+        }
+        /*,
+        syncChromeWithAccount : function() {//TODO: can be removed
             if (!Session.get(Const.CHROM_SYNCED_ALREADY)) {
                 Session.set(Const.CHROM_SYNCED_ALREADY, true);
                 // send chrome message to have set the current users profile and id                
                 syncProfileWithChrome(this.chromeUserId);
             }
             //return this.chromeUserId;
-        }
+        }*/
     });
 
   
@@ -349,7 +368,7 @@ if (Meteor.isClient) {
             var userprofile = $.extend(Meteor.user().profile, form.profile);
             form.profile = userprofile;
             Meteor.users.update({_id: Meteor.userId()}, {$set:form}, function(){
-                syncProfileWithChrome();
+                //syncProfileWithChrome();
                  //sendMessage(MSG_IDS.PROFILE_CHANGE, form);
             });
             
@@ -422,6 +441,7 @@ if (Meteor.isClient) {
 }
 
 
+
 if (Meteor.isServer) {
     //Meteor.users.allow({update: function () { return true; }});
 
@@ -439,14 +459,17 @@ if (Meteor.isServer) {
 
     Accounts.onCreateUser(function(options, user) {
 
-        if (!user.username === "dennisf") {
-            var invitation = Invitations.findOne({url:options.url, inUse:false});
-            if (!invitation) {
-                throw new Error("invalid.invitation.error");
-            }
+        if (!ConfigManager.getConfig().allowRegistration) {
 
-            Invitations.remove({_id:invitation._id});
-            //Invitations.update({_id:invitation._id}, {$set: {inUse:true}});
+            if (!user.username === "dennisf") {
+                var invitation = Invitations.findOne({url:options.url, inUse:false});
+                if (!invitation) {
+                    throw new Error("invalid.invitation.error");
+                }
+
+                Invitations.remove({_id:invitation._id});
+                //Invitations.update({_id:invitation._id}, {$set: {inUse:true}});
+            }
         }
         user.profile = {
             notifyOnStart : true,
@@ -458,15 +481,97 @@ if (Meteor.isServer) {
         return user;
     });
 
+    Meteor.methods({
+        'sendGCMMessage': function sendGCMMessage(registrationIds, data) {
+
+            var gcm = Meteor.npmRequire('node-gcm');
+
+            // create a message with default values
+            //var message = new gcm.Message();
+
+            // or with object values
+            var message = new gcm.Message({
+                collapseKey: 'demo',
+                delayWhileIdle: true,
+                timeToLive: 3,
+                data: data
+            });
+
+            var sender = new gcm.Sender('AIzaSyAeF4dV4kgZ8vMQVdjv0B0yAZq0WfmEDVQ');
+            //var registrationIds = [regid];
+
+            // OPTIONAL
+            // add new key-value in data object
+            //message.addDataWithKeyValue('key1','message1');
+            //message.addDataWithKeyValue('key2','message2');
+
+            // or add a data object
+            /*message.addDataWithObject({
+                key1: 'message1',
+                key2: 'message2'
+            });*/
+
+            // or with backwards compability of previous versions
+            /*message.addData('key1','message1');
+            message.addData('key2','message2');
+
+
+            message.collapseKey = 'demo';
+            message.delayWhileIdle = true;
+            message.timeToLive = 3;
+            //message.dryRun = true;
+            // END OPTIONAL
+
+            // At least one required
+            /*registrationIds.push('regId1');
+            registrationIds.push('regId2'); */
+
+            /**
+             * Params: message-literal, registrationIds-array, No. of retries, callback-function
+             **/
+            sender.send(message, registrationIds, 4, function (err, result) {
+                if (err) {
+                    console.log(err);
+                }
+                /*console.log("result:");
+                console.log(result);*/
+            });
+
+            /*var NodeGcm = Meteor.npmRequire('node-gcm');
+            var github = new NodeGcm({
+              version: "3.0.0"
+            });
+
+            var gists = Async.runSync(function(done) {
+            github.gists.getFromUser({user: 'arunoda'}, function(err, data) {
+              done(null, data);
+            });*/
+            //});
+
+            //return gists.result;
+        }
+    });
 
 
     Meteor.startup(function () {
         var dennis = Meteor.users.findOne({username: "dennisf"});
         if (!dennis) {
             console.log("Created Admin");
-             Accounts.createUser({username: "dennisf", password: "admin"}); 
+            Accounts.createUser({username: "dennisf", password: "admin"}); 
         } else {
             console.log("Admin creation skipped");
+        }
+
+        var config = Config.findOne({});
+        if (!config) {
+            var c = {
+                admin : "dennisf",
+                allowRegistration : true
+            }
+            Config.insert(c);
+            console.log("Config created");
+        } else {
+            console.log("Config creation skipped");
         }
     // code to run on server at startup
 

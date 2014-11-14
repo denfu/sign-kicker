@@ -294,7 +294,7 @@ div#t-registration {
 }
 
 #signup-link {
-	visibility: hidden;
+	/*visibility: hidden;*/
 }
 
 span#y-registration-icon {

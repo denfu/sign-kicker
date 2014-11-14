@@ -8,4 +8,5 @@
 * icon favo
 * SEND MESSAGE - plugin sync!
 ** ausnahme wenn plug nicht installiert!
+* link is not deleted
 */
