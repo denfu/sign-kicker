@@ -1,5 +1,4 @@
-Config = new Mongo.Collection("Config");
-Matches = new Mongo.Collection("Matches");
+
 
 MatchState = {
     INITIALIZED : "initialized",
@@ -15,28 +14,45 @@ MatchManager = {
     endMatch: function(id) {
        //Matches.remove({_id:id});
         Matches.update({_id:id}, {$set: {ender: Meteor.userId(), state : MatchState.ENDED, endDate: new Date().getTime()}});
+        updateBadges();
     },
     updateMatch: function(match) {
         Matches.update({_id:match._id}, match);
+        updateBadges();
     },
 
     abortMatch: function(id) {
        //Matches.remove({_id:id});
         Matches.update({_id:id}, {$set: {aborter: Meteor.userId(), state : MatchState.ABORTED, abortDate: new Date().getTime()}});
+        updateBadges();
     },
 
     startMatch: function(match) {
        //Matches.remove({_id:id});
         //sendMessage(MSG_IDS.GAME_START, match)
-        var registrationIds = $.map(Meteor.users.find({"profile.notifyOnStart":true}).fetch(), function(u){ return u.profile.registrationId;});
+        //teor.users.find({$or:match.places});
+        //var registrationIds = $.map(Meteor.users.find({"profile.notifyOnStart":true}).fetch(), function(u){ return u.profile.registrationId;});
         //TODO: only those how play
-        sendGCMMessage(registrationIds, {msgId: MSG_IDS.GAME_START, title : "Game started", message: ""});
+        var registrationIds = $.map(
+            Meteor.users.find({$and: [{$or:$.map(match.places, function(id) {return {_id: id}})}, {"profile.notifyOnStart":true}]}).fetch(),
+                function(u){ return u.profile.registrationId;}
+        );
+
+        // all users in the game
+        var gameUsers = Meteor.users.find({$or:$.map(match.places, function(id) {return {_id: id}})}).fetch();
+        var gameNames = "";
+        $.each(gameUsers, function(i,u){gameNames += u.username + " "}); //TODO: better
+        //var registrationIds = $.map(gameUsers, function(u) {return {u}});
+
+        sendGCMMessage(registrationIds, {msgId: MSG_IDS.GAME_START, title : "Game started", message: gameNames});
         Matches.update({_id:match._id}, {$set: {starter: Meteor.userId(), state : MatchState.STARTED, startDate: new Date().getTime()}});
+        updateBadges();
     },
 
     undoAbortMatch: function(id) {
        
         Matches.update({_id:id}, {$set: {state : MatchState.INITIALIZED}});
+        updateBadges();
     },
 
     createMatch: function() {
@@ -97,9 +113,18 @@ if (Meteor.isClient) {
 
     Router.route('/', function () {
         this.render('masterTemplate');
+        this.render("matchList", {to:"containerContent"});
+        this.render("chat", {to:"footer"});
+    });
+
+   
+    Router.route('/users', function () {
+        this.render('masterTemplate');
+        this.render('users', {to:"containerContent"});
     });
 
     Router.route('/registerGCM', function () {
+        //this.render("matchList", {to:"containerContent"});
         this.render('masterTemplate', {
             data : function() {
                 return {registerGCM: true};
@@ -107,15 +132,10 @@ if (Meteor.isClient) {
         });
     });
 
-    /*Router.route('/chrome/:_chromeUserId', function () {
-        this.render('masterTemplate', {
-            data : function() {
-                return {chromeUserId: this.params._chromeUserId};
-            }
-        });
-    });*/
+   
 
     Router.route('/invitation/:_id', function () {
+
         this.render('registration', {
             data: function () {
               return {url: this.params._id};//Posts.findOne({_id: this.params._id});
@@ -125,9 +145,10 @@ if (Meteor.isClient) {
 
 
 
-    Meteor.subscribe('allUsers');
+    /*Meteor.subscribe('allUsers');
     Meteor.subscribe('allMatches');
     Meteor.subscribe('allChats');
+    Meteor.subscribe('configAll');*/
 
     Accounts.ui.config({      
         passwordSignupFields: 'USERNAME_ONLY'
@@ -137,11 +158,14 @@ if (Meteor.isClient) {
 
 
     Template.statelabel.helpers({
-        getStateLabelName : function() {            
-            return I18N[this.toString()] || this.toString();
+        getStateLabelName : function() {
+            if (this.state.toString() === MatchState.STARTED) {
+                return "started at " + getFormattedTime(new Date(this.startDate));// + "/ " + I18N[this.state.toString()];
+            }
+            return I18N[this.state.toString()] || this.state.toString();
         },
         getStateLabelCls : function() {
-            switch (this.toString()) {
+            switch (this.state.toString()) {
                 case MatchState.STARTED:
                     return "success";
                 case MatchState.ABORTED:
@@ -320,8 +344,9 @@ if (Meteor.isClient) {
                 //if ready
                 sendMessage(MSG_IDS.REGISTER_GCM, Meteor.user(), function(result) {
                     //console.log(result);
-                    //Router.go("/");
+                    Router.go("/");
                 });
+                Router.go("/");
             }
             //return location.pathname;
         },
@@ -350,7 +375,10 @@ if (Meteor.isClient) {
             var form = {profile:{}};
 
             $.each($('#profile-form input'), function(){
-                switch(this.type) {
+                if (this.id.indexOf("y-admin") >= 0) {
+                    ConfigManager.setAllowRegistration(this.checked);
+                } else {
+                    switch(this.type) {
                     case 'text':
                         if (this.value) {
                             form.profile[this.id] = this.value;                            
@@ -361,9 +389,9 @@ if (Meteor.isClient) {
                         break;
                     default:
                         break;
+                    }
                 }
-                
-            })
+            });
 
             var userprofile = $.extend(Meteor.user().profile, form.profile);
             form.profile = userprofile;
@@ -390,13 +418,19 @@ if (Meteor.isClient) {
   Template.matchList.events({
     'click .y-about-to-start-btn': function (e,a) {
         //var matchId = e.currentTarget.dataset.matchid;
-       
+       var players = $.map(this.places, function(p) {if (p !== Const.UNKNOWN_USER) {return p}}).length;
+        if (players > 0 && this.places.indexOf(Meteor.userId()) < 0) {
+            return ; // not allowed
+        }
         MatchManager.startMatch(this);
     }, 
 
     'click .y-ended-btn': function (e,a) {
         //var matchId = e.currentTarget.dataset.matchid;
-       
+       var players = $.map(this.places, function(p) {if (p !== Const.UNKNOWN_USER) {return p}}).length;
+        if (players > 0 && this.places.indexOf(Meteor.userId()) < 0) {
+            return ; // not allowed
+        }
         MatchManager.endMatch(this._id);
     },
 
@@ -405,11 +439,18 @@ if (Meteor.isClient) {
 
     'click .y-abort-btn': function (e,a) {
         //var matchId = e.currentTarget.dataset.matchid;
+        var players = $.map(this.places, function(p) {if (p !== Const.UNKNOWN_USER) {return p}}).length;
+        if (players > 0 && this.places.indexOf(Meteor.userId()) < 0) {
+            return ; // not allowed
+        }
         MatchManager.abortMatch(this._id);
     },
 
     'click .y-abort-undo-btn': function (e,a) {
-        
+        var players = $.map(this.places, function(p) {if (p !== Const.UNKNOWN_USER) {return p}}).length;
+        if (players > 0 && this.places.indexOf(Meteor.userId()) < 0) {
+            return ; // not allowed
+        }
         MatchManager.undoAbortMatch(this._id);
     },
 
@@ -429,8 +470,11 @@ if (Meteor.isClient) {
         } 
         //else if (place === Meteor.userId()) {
         //    match.places[index] = null;
-         else {
-            match.places[index] = null;
+        else if (place !== Const.UNKNOWN_USER && place !== userId) {
+            
+        }
+        else {
+                match.places[index] = null;
         }
         MatchManager.updateMatch(match);
     } 
@@ -457,20 +501,30 @@ if (Meteor.isServer) {
       return Chats.find({});
     });
 
+    Meteor.publish("configAll", function () {
+      return Config.find({});
+    });
+
     Accounts.onCreateUser(function(options, user) {
+        var registrationAllowed = ConfigManager.getConfig().allowRegistration;
+        var isAdminCreation = user.username === "dennisf";
+        console.log("registrationAllowed: " + registrationAllowed);
+        console.log("isAdminCreation: " + isAdminCreation);
+        
+        if (!isAdminCreation && !registrationAllowed) {
 
-        if (!ConfigManager.getConfig().allowRegistration) {
+            var invitation = Invitations.findOne({url:options.url, inUse:false});
+            console.log("invitation: ");
+            console.log(invitation);
 
-            if (!user.username === "dennisf") {
-                var invitation = Invitations.findOne({url:options.url, inUse:false});
-                if (!invitation) {
-                    throw new Error("invalid.invitation.error");
-                }
-
-                Invitations.remove({_id:invitation._id});
-                //Invitations.update({_id:invitation._id}, {$set: {inUse:true}});
+            if (!invitation) {
+                throw new Error("invalid.invitation.error");
             }
+
+            Invitations.remove({_id:invitation._id});
+            //Invitations.update({_id:invitation._id}, {$set: {inUse:true}});
         }
+
         user.profile = {
             notifyOnStart : true,
             notifyOnMsg : false,

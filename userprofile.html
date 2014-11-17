@@ -5,7 +5,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                        <h4 class="modal-title">{{I18N 'profileTitle'}}</h4>
+                        <h4 class="modal-title">{{I18N 'profileTitle'}}: {{currentUser.username}}</h4>
                     </div>
                     <div class="modal-body">
                         {{#with currentUser.profile}}
@@ -47,12 +47,21 @@
                     </div>
 
 
-                    <div class="col-lg-10">
-                        
-                        <a target="_blank" href="https://chrome.google.com/webstore/detail/company-foosball/mpmampponpogdhdclablndjjimeeamaj">Download Chrome Plugin</a>
-                    </div>
                     {{#if isAdmin}}
                         <div class="col-lg-10">
+                            <div class="col-lg-10">
+                                
+                                <a target="_blank" href="https://chrome.google.com/webstore/detail/company-foosball/mpmampponpogdhdclablndjjimeeamaj">Download Chrome Plugin</a>
+                            </div>
+
+                            {{#with adminConfiguration}}
+                            <div class="col-lg-10">
+                                <label>
+                                    <input id="y-admin-enable-registration" type="checkbox" checked="{{allowRegistration}}"><span class="ripple"></span><span class="check"></span>
+                                    Registration allowed
+                                </label>
+                            </div>
+                            {{/with}}
 
                             <button type="button" class="y-generate-invite-link btn btn-primary">{{I18N 'keygenerate'}}</button>
                            

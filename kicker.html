@@ -1,5 +1,6 @@
 <head>
   <title>Foosball</title>
+  <link rel="icon" href="public/logo.png" type="image/x-icon" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
@@ -22,14 +23,15 @@
 			{{> profile_dialog}}
 			
 			<div class="container">	
-				{{> matchList}}
+				{{> yield "containerContent"}}
+				<!--matchList-->
 			</div>
 		</div>
 
 		<div id="y-bottom">
 			<div class="footer">
 		      	<div class="container">
-		      		{{> chat}}
+		      		{{> yield "footer"}}
 		      	</div>
 		    </div>
 		</div>
@@ -75,9 +77,9 @@
 										</div>
 										
 										<div class="y-col-btn col-xs-5">
-											{{#with state}}
+											
 												{{> statelabel}}												
-											{{/with}}	
+												
 										</div>
 											
 										<div class="y-col-btn col-xs-2"></div>

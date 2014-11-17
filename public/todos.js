@@ -2,13 +2,16 @@
 * Notifications
 ** new mesges
 ** additional info in gamestart
-* game start makieren
+* !! game end makieren
+* !! bdages
 ** simple login
 * chat begrenzen
-* icon favo
-* NUR DIE UER DIE BETEILIGT SIND BENACHRICHTIGEN
+* !icon favo
+*
 * config: nachricht wenn frei/ende
-** ausnahme wenn plug nicht installiert!
+**
 * link is not deleted
-* list users
+* nicht jeder sollte entfernen können
+** REFACTORINGS: 
+* template überarbeiten (routes)
 */

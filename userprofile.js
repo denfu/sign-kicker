@@ -12,6 +12,10 @@ if (Meteor.isClient) {
     Template.profile_body.helpers({
         getInvitations : function() {
             return Invitations.find({ownerId:Meteor.userId(), inUse: false});
+        },
+
+        adminConfiguration : function() {
+            return ConfigManager.getConfig();
         }
 
         
