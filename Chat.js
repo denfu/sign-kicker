@@ -3,14 +3,17 @@ Chats = new Mongo.Collection("Chat");
 ChatManager = {
     addChat : function(msg) {
         if (!msg.trim()) return ;
-
+        var author = Meteor.user().profile? Meteor.user().profile.username : Meteor.user().username;
         var chat = {
             creationDate : new Date(),
             userId : Meteor.userId(),
-            username : Meteor.user().profile? Meteor.user().profile.username : Meteor.user().username,
+            username : author,
             msg : msg
         };
 
+        sendGCMMessageWithFilter({msgId: MSG_IDS.CHAT, author: author, txt:msg}, function(user){
+            return user.profile.notifyOnMsg && user._id !== Meteor.userId();
+        });
         Chats.insert(chat);
     },
 

@@ -9,7 +9,7 @@
 * !icon favo
 *
 * config: nachricht wenn frei/ende
-**
+** PING button
 * link is not deleted
 * nicht jeder sollte entfernen können
 ** REFACTORINGS: 

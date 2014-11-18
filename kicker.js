@@ -77,6 +77,12 @@ MatchManager = {
                 //TODO: log fail
             }
         });
+
+        var author = Meteor.user().profile? Meteor.user().profile.username : Meteor.user().username;
+        sendGCMMessageWithFilter({msgId: MSG_IDS.NG, author: author, txt:"New match just created (#"+match.num+")."}, function(user){
+            return user.profile.notifyAdd && user._id !== Meteor.userId();
+        });
+
         return match;
     },
 
@@ -178,6 +184,22 @@ if (Meteor.isClient) {
         }
     });
 
+    isMatchAboutToStart = function(match) {
+        if (MatchState.ABORTED === match.state || match.state === MatchState.STARTED) {
+            return false;
+        }
+
+        var foundEmpty = false;
+        $.each(match.places, function(index, value) {
+            if (value === null) {
+                foundEmpty = true;
+                return;
+            }
+        });
+
+        return !foundEmpty;
+    },
+
     Template.matchList.helpers({
 
         calloutIfStarted : function() {
@@ -196,6 +218,8 @@ if (Meteor.isClient) {
         },
 
         isMatchAboutToStart : function() {
+            return isMatchAboutToStart(this);
+            /*
             if (MatchState.ABORTED === this.state || this.state === MatchState.STARTED) {
                 return false;
             }
@@ -208,7 +232,7 @@ if (Meteor.isClient) {
                 }
             });
 
-            return !foundEmpty;
+            return !foundEmpty;*/
         },
 
         isMatchAbortedOrStarted : function() {
@@ -412,14 +436,24 @@ if (Meteor.isClient) {
 
         }
     });
+    
+    var canPlayerChangeMatch = function(match) {
+        if (ConfigManager.isAdmin()) {
+            return true;
+        }
 
+        var players = $.map(match.places, function(p) {if (p !== Const.UNKNOWN_USER) {return p}}).length;
+        if (players > 0 && match.places.indexOf(Meteor.userId()) < 0) {
+            return false; // not allowed
+        }
+        return true;
+    }
  
 
-  Template.matchList.events({
-    'click .y-about-to-start-btn': function (e,a) {
+    Template.matchList.events({
+        'click .y-about-to-start-btn': function (e,a) {
         //var matchId = e.currentTarget.dataset.matchid;
-       var players = $.map(this.places, function(p) {if (p !== Const.UNKNOWN_USER) {return p}}).length;
-        if (players > 0 && this.places.indexOf(Meteor.userId()) < 0) {
+        if (!canPlayerChangeMatch(this)) {
             return ; // not allowed
         }
         MatchManager.startMatch(this);
@@ -427,8 +461,7 @@ if (Meteor.isClient) {
 
     'click .y-ended-btn': function (e,a) {
         //var matchId = e.currentTarget.dataset.matchid;
-       var players = $.map(this.places, function(p) {if (p !== Const.UNKNOWN_USER) {return p}}).length;
-        if (players > 0 && this.places.indexOf(Meteor.userId()) < 0) {
+       if (!canPlayerChangeMatch(this)) {
             return ; // not allowed
         }
         MatchManager.endMatch(this._id);
@@ -439,16 +472,14 @@ if (Meteor.isClient) {
 
     'click .y-abort-btn': function (e,a) {
         //var matchId = e.currentTarget.dataset.matchid;
-        var players = $.map(this.places, function(p) {if (p !== Const.UNKNOWN_USER) {return p}}).length;
-        if (players > 0 && this.places.indexOf(Meteor.userId()) < 0) {
+        if (!canPlayerChangeMatch(this)) {
             return ; // not allowed
         }
         MatchManager.abortMatch(this._id);
     },
 
     'click .y-abort-undo-btn': function (e,a) {
-        var players = $.map(this.places, function(p) {if (p !== Const.UNKNOWN_USER) {return p}}).length;
-        if (players > 0 && this.places.indexOf(Meteor.userId()) < 0) {
+       if (!canPlayerChangeMatch(this)) {
             return ; // not allowed
         }
         MatchManager.undoAbortMatch(this._id);
@@ -476,6 +507,28 @@ if (Meteor.isClient) {
         else {
                 match.places[index] = null;
         }
+
+        if (isMatchAboutToStart(match)) {
+
+            var registrationIds = $.map(
+            Meteor.users.find({$and: [{$or:$.map(match.places, function(id) {return {_id: id}})}, {"profile.notifyOnFull":true}]}).fetch(),
+                function(u){ return u.profile.registrationId;}
+            );
+
+            // all users in the game
+            var gameUsers = Meteor.users.find({$or:$.map(match.places, function(id) {return {_id: id}})}).fetch();
+            var gameNames = "";
+            $.each(gameUsers, function(i,u){gameNames += u.username + " "}); //TODO: better
+            //var registrationIds = $.map(gameUsers, function(u) {return {u}});
+
+            sendGCMMessage(registrationIds, {msgId: MSG_IDS.GAME_ABOUT_TO_START, title : "Game may start", message: gameNames});
+
+            
+
+        }
+
+        
+
         MatchManager.updateMatch(match);
     } 
   });
@@ -538,10 +591,16 @@ if (Meteor.isServer) {
     Meteor.methods({
         'sendGCMMessage': function sendGCMMessage(registrationIds, data) {
 
-            var gcm = Meteor.npmRequire('node-gcm');
+            /*if (!msgId || typeof(msgId) !== "string") {
+                console.log("[sendGCMMessage] : illegal msgId");
+                throw new Error("illegal msgId");
+            }*/
 
-            // create a message with default values
-            //var message = new gcm.Message();
+            console.log("[" + data.msgId + "] try send to " + registrationIds);
+
+            //data.msgId = msgId;
+
+            var gcm = Meteor.npmRequire('node-gcm');
 
             // or with object values
             var message = new gcm.Message({
@@ -551,35 +610,8 @@ if (Meteor.isServer) {
                 data: data
             });
 
-            var sender = new gcm.Sender('AIzaSyAeF4dV4kgZ8vMQVdjv0B0yAZq0WfmEDVQ');
-            //var registrationIds = [regid];
-
-            // OPTIONAL
-            // add new key-value in data object
-            //message.addDataWithKeyValue('key1','message1');
-            //message.addDataWithKeyValue('key2','message2');
-
-            // or add a data object
-            /*message.addDataWithObject({
-                key1: 'message1',
-                key2: 'message2'
-            });*/
-
-            // or with backwards compability of previous versions
-            /*message.addData('key1','message1');
-            message.addData('key2','message2');
-
-
-            message.collapseKey = 'demo';
-            message.delayWhileIdle = true;
-            message.timeToLive = 3;
-            //message.dryRun = true;
-            // END OPTIONAL
-
-            // At least one required
-            /*registrationIds.push('regId1');
-            registrationIds.push('regId2'); */
-
+            var sender = new gcm.Sender(Const.GCM_ID);
+            
             /**
              * Params: message-literal, registrationIds-array, No. of retries, callback-function
              **/
@@ -591,18 +623,6 @@ if (Meteor.isServer) {
                 console.log(result);*/
             });
 
-            /*var NodeGcm = Meteor.npmRequire('node-gcm');
-            var github = new NodeGcm({
-              version: "3.0.0"
-            });
-
-            var gists = Async.runSync(function(done) {
-            github.gists.getFromUser({user: 'arunoda'}, function(err, data) {
-              done(null, data);
-            });*/
-            //});
-
-            //return gists.result;
         }
     });
 
