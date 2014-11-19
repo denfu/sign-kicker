@@ -580,37 +580,44 @@ if (Meteor.isServer) {
 
         user.profile = {
             notifyOnStart : true,
-            notifyOnMsg : false,
-            notifyAdd : false,
+            notifyOnMsg : true,
+            notifyAdd : true,
             notifyOnFull : true,
             username : user.username
         }
         return user;
     });
 
+    gcm = Meteor.npmRequire('node-gcm');
+    sender = new gcm.Sender(Const.GCM_ID);
+
     Meteor.methods({
         'sendGCMMessage': function sendGCMMessage(registrationIds, data) {
+            if (!registrationIds || registrationIds.length < 1) {
+                return ;
+            }
 
             /*if (!msgId || typeof(msgId) !== "string") {
                 console.log("[sendGCMMessage] : illegal msgId");
                 throw new Error("illegal msgId");
             }*/
 
-            console.log("[" + data.msgId + "] try send to " + registrationIds);
+            console.log("[" + data.msgId + "] try send");//"to " + registrationIds);
 
             //data.msgId = msgId;
 
-            var gcm = Meteor.npmRequire('node-gcm');
+            /*var gcm = Meteor.npmRequire('node-gcm');
+            var sender = new gcm.Sender(Const.GCM_ID);*/
 
             // or with object values
             var message = new gcm.Message({
-                collapseKey: 'demo',
-                delayWhileIdle: true,
-                timeToLive: 3,
+                //collapseKey: 'demo',
+                delayWhileIdle: false,
+                timeToLive: 10,
                 data: data
             });
 
-            var sender = new gcm.Sender(Const.GCM_ID);
+            
             
             /**
              * Params: message-literal, registrationIds-array, No. of retries, callback-function
